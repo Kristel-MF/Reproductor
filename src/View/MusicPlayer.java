@@ -4,10 +4,15 @@
  */
 package View;
 
+import Controller.MusicPlayerController;
+import Model.Song;
 import java.awt.Image;
+import java.io.File;
+import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 /**
@@ -16,53 +21,98 @@ import javax.swing.SwingUtilities;
  */
 public class MusicPlayer extends javax.swing.JFrame {
 
+    private MusicPlayerController controller;
+    private DefaultListModel<String> listModel;
+
     /**
      * Creates new form MusicPlayer
      */
     public MusicPlayer() {
         initComponents();
-        this.setLocationRelativeTo(this);
+        listModel = new DefaultListModel<>();
+        jList1.setModel(listModel);
+ System.out.println("Directorio actual: " + new java.io.File(".").getAbsolutePath());
+        controller = new MusicPlayerController(this, listModel);
 
-      
-      //  SetImageLabel(jLabel1,"test/IMG/Album.jpg");
-       
+        try {
+            File cancion1 = new File("src/Songs/Los Cafres - Tus ojos (AUDIO) [mwty9NqTtSc] (1).mp3");
+            File cancion2 = new File("src/Songs/Vicente García - Carmesí (Cover Audio) [1MpDovOX5zM].mp3");
 
-        // Asegura que los botones tengan tamaño antes de poner las imágenes
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                setButtonIcon(pausa, "IMG/pausa_1.png");
-                setButtonIcon(Siguiente, "IMG/siguiente.png");
-                setButtonIcon(anterior, "IMG/anterior.png");
-                setImageToLabel(titulo, "IMG/boton-de-play.png");
-            }
+            controller.addSong(cancion1);
+            controller.addSong(cancion2);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar canciones predefinidas");
+            e.printStackTrace();
+        }
+
+        this.setLocationRelativeTo(null);
+
+        SwingUtilities.invokeLater(() -> {
+            setButtonIcon(pausa, "IMG/pausa_1.png");
+            setButtonIcon(Siguiente, "IMG/siguiente.png");
+            setButtonIcon(anterior, "IMG/anterior.png");
+            setImageToLabel(titleLabel, "IMG/boton-de-play.png");
         });
-
     }
+
     private void setButtonIcon(javax.swing.JButton button, String resourcePath) {
-    java.net.URL imgURL = getClass().getClassLoader().getResource(resourcePath);
-    if (imgURL != null) {
-        ImageIcon image = new ImageIcon(imgURL);
-        Icon icon = new ImageIcon(image.getImage().getScaledInstance(button.getWidth(), button.getHeight(), Image.SCALE_SMOOTH));
-        button.setIcon(icon);
-        button.setText("");
-    } else {
-        System.out.println("No se encontró el recurso: " + resourcePath);
+        java.net.URL imgURL = getClass().getClassLoader().getResource(resourcePath);
+        if (imgURL != null) {
+            ImageIcon image = new ImageIcon(imgURL);
+            Icon icon = new ImageIcon(image.getImage().getScaledInstance(button.getWidth(), button.getHeight(), Image.SCALE_SMOOTH));
+            button.setIcon(icon);
+            button.setText("");
+        } else {
+            System.out.println("No se encontró el recurso: " + resourcePath);
+        }
     }
-}
 
-
-  private void setImageToLabel(JLabel label, String resourcePath) {
-    java.net.URL imgURL = getClass().getClassLoader().getResource(resourcePath);
-    if (imgURL != null) {
-        ImageIcon image = new ImageIcon(imgURL);
-        Icon icon = new ImageIcon(image.getImage().getScaledInstance(label.getWidth(), label.getHeight(), Image.SCALE_SMOOTH));
-        label.setIcon(icon);
-        label.setText("");
-    } else {
-        System.out.println("No se encontró la imagen: " + resourcePath);
+    private void setImageToLabel(JLabel label, String resourcePath) {
+        java.net.URL imgURL = getClass().getClassLoader().getResource(resourcePath);
+        if (imgURL != null) {
+            ImageIcon image = new ImageIcon(imgURL);
+            Icon icon = new ImageIcon(image.getImage().getScaledInstance(label.getWidth(), label.getHeight(), Image.SCALE_SMOOTH));
+            label.setIcon(icon);
+            label.setText("");
+        } else {
+            System.out.println("No se encontró la imagen: " + resourcePath);
+        }
     }
-}
 
+    public void updateTime(int currentSeconds, int totalSeconds) {
+        // Puedes actualizar la barra de progreso aquí
+    }
+
+    public void updateStatus(String status) {
+        // Puedes actualizar etiquetas o estados aquí
+    }
+
+    public void addSongToList(String songTitle) {
+        listModel.addElement(songTitle);
+    }
+  public void mostrarCancion(Song song) {
+        if (song == null) {
+            titleLabel.setText("Título: -");
+            artistLabel.setText("Artista: -");
+            durationLabel.setText("Duración: -");
+            coverLabel.setIcon(null);
+            return;
+        }
+        titleLabel.setText("Título: " + song.getTitle());
+        artistLabel.setText("Artista: " + song.getArtist());
+        durationLabel.setText("Duración: " + song.getDurationFormatted());
+
+        // Mostrar imagen portada
+        byte[] imageBytes = song.getCoverImage();
+        if (imageBytes != null) {
+            ImageIcon icon = new ImageIcon(imageBytes);
+            // Escalar la imagen para que quepa en el JLabel, por ejemplo 150x150 px
+            Image scaledImage = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+            coverLabel.setIcon(new ImageIcon(scaledImage));
+        } else {
+            coverLabel.setIcon(null);
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -75,24 +125,23 @@ public class MusicPlayer extends javax.swing.JFrame {
 
         jPanel2 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
-        jPanel3 = new javax.swing.JPanel();
-        titulo = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        titleLabel = new javax.swing.JLabel();
+        artistLabel = new javax.swing.JLabel();
         anterior = new javax.swing.JButton();
         pausa = new javax.swing.JButton();
         Siguiente = new javax.swing.JButton();
         jProgressBar1 = new javax.swing.JProgressBar();
-        agregar = new javax.swing.JButton();
-        jTextField3 = new javax.swing.JTextField();
-        jTextField4 = new javax.swing.JTextField();
+        agregaralista = new javax.swing.JButton();
+        coverLabel = new javax.swing.JLabel();
+        durationLabel = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList<>();
         jLabel1 = new javax.swing.JLabel();
         lblActual = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        artistasonando = new javax.swing.JTextField();
+        filtrar = new javax.swing.JTextField();
+        filtro = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -102,32 +151,31 @@ public class MusicPlayer extends javax.swing.JFrame {
 
         jPanel1.setBackground(new java.awt.Color(102, 102, 102));
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 203, Short.MAX_VALUE)
-        );
+        titleLabel.setText("jLabel1");
 
-        titulo.setText("jLabel1");
-
-        jLabel2.setText("jLabel2");
+        artistLabel.setText("jLabel2");
 
         anterior.setText("jButton1");
 
         pausa.setText("jButton2");
+        pausa.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pausaActionPerformed(evt);
+            }
+        });
 
         Siguiente.setText("jButton3");
+        Siguiente.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SiguienteActionPerformed(evt);
+            }
+        });
 
-        agregar.setText("jButton1");
+        agregaralista.setText("jButton1");
 
-        jTextField3.setText("jTextField3");
+        coverLabel.setText("jLabel3");
 
-        jTextField4.setText("jTextField4");
+        durationLabel.setText("jLabel2");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -140,46 +188,45 @@ public class MusicPlayer extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(24, 24, 24)
                 .addComponent(anterior, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 72, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 116, Short.MAX_VALUE)
                 .addComponent(pausa, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(68, 68, 68)
                 .addComponent(Siguiente, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(44, 44, 44))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(44, 44, 44)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(coverLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(44, 44, 44)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(titulo, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 141, Short.MAX_VALUE)
-                            .addComponent(jTextField4))
+                            .addComponent(artistLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE)
+                            .addComponent(titleLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(agregar, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(29, 29, 29))
+                        .addComponent(agregaralista, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(29, 29, 29))))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(34, 34, 34)
+                .addComponent(durationLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 366, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(62, 62, 62)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(titulo, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(agregar))
-                .addGap(57, 57, 57)
+                .addGap(77, 77, 77)
+                .addComponent(coverLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(68, 68, 68)
+                .addComponent(artistLabel)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(agregaralista)
+                    .addComponent(titleLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(50, 50, 50)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(73, 73, 73)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(durationLabel)
+                .addGap(49, 49, 49)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(Siguiente)
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -206,11 +253,11 @@ public class MusicPlayer extends javax.swing.JFrame {
         lblActual.setForeground(new java.awt.Color(240, 240, 240));
         lblActual.setText("Reproduciendo desde Artista");
 
-        jTextField1.setText("jTextField1");
+        artistasonando.setText("jTextField1");
 
-        jTextField2.setText("jTextField2");
+        filtrar.setText("jTextField2");
 
-        jButton1.setText("jButton1");
+        filtro.setText("jButton1");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -225,17 +272,17 @@ public class MusicPlayer extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(filtrar, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)))
+                        .addComponent(filtro, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)))
                 .addGap(41, 41, 41))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addGap(56, 56, 56)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblActual, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(artistasonando, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -245,9 +292,9 @@ public class MusicPlayer extends javax.swing.JFrame {
                 .addComponent(lblActual)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(artistasonando, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(filtrar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(filtro))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
@@ -275,11 +322,22 @@ public class MusicPlayer extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void pausaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pausaActionPerformed
+        //pausar
+        controller.pause();
+    }//GEN-LAST:event_pausaActionPerformed
+
+    private void SiguienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SiguienteActionPerformed
+        // siguiente cancion
+
+        controller.next();
+    }//GEN-LAST:event_SiguienteActionPerformed
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        
+
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -311,27 +369,27 @@ public class MusicPlayer extends javax.swing.JFrame {
         });
     }
 
-   
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Siguiente;
-    private javax.swing.JButton agregar;
+    private javax.swing.JButton agregaralista;
     private javax.swing.JButton anterior;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel artistLabel;
+    private javax.swing.JTextField artistasonando;
+    private javax.swing.JLabel coverLabel;
+    private javax.swing.JLabel durationLabel;
+    private javax.swing.JTextField filtrar;
+    private javax.swing.JButton filtro;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JList<String> jList1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
     private javax.swing.JLabel lblActual;
     private javax.swing.JButton pausa;
-    private javax.swing.JLabel titulo;
+    private javax.swing.JLabel titleLabel;
     // End of variables declaration//GEN-END:variables
+
 }
